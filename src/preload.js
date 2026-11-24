@@ -6,7 +6,7 @@ contextBridge.exposeInMainWorld('api', {
   meta: invoke('meta'),
   token: { info: invoke('token:info'), set: invoke('token:set') },
   agents: { list: invoke('agents:list'), save: invoke('agents:save'), delete: invoke('agents:delete') },
-  mcp: { list: invoke('mcp:list'), save: invoke('mcp:save'), delete: invoke('mcp:delete'), test: invoke('mcp:test') },
+  mcp: { list: invoke('mcp:list'), save: invoke('mcp:save'), delete: invoke('mcp:delete'), test: invoke('mcp:test'), logout: invoke('mcp:logout') },
   skills: {
     list: invoke('skills:list'),
     save: invoke('skills:save'),

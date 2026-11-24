@@ -129,7 +129,7 @@ async function renderMcp() {
         (s) => `<div class="card"><h3>${esc(s.name)}</h3><span class="tag">${esc(s.type)}</span>
       <div class="hint"><code>${esc(s.type === 'stdio' ? [s.command, ...(s.args || [])].join(' ') : s.url)}</code></div>
       <div class="hint" id="t-${esc(s.id)}"></div>
-      <div class="actions"><button data-test="${esc(s.id)}">Probar</button><button data-edit="${esc(s.id)}">Editar</button><button class="danger" data-del="${esc(s.id)}">Eliminar</button></div></div>`
+      <div class="actions"><button data-test="${esc(s.id)}">Probar</button><button data-edit="${esc(s.id)}">Editar</button>${s.type !== 'stdio' ? `<button data-logout="${esc(s.id)}">Cerrar sesión</button>` : ''}<button class="danger" data-del="${esc(s.id)}">Eliminar</button></div></div>`
       )
       .join('') || '<p class="hint">No hay servidores todavía.</p>';
   const byId = (id) => list.find((s) => s.id === id);
@@ -141,11 +141,19 @@ async function renderMcp() {
     (b) =>
       (b.onclick = async () => {
         const out = document.getElementById(`t-${b.dataset.test}`);
-        out.textContent = 'Conectando…';
-        const r = await desk.mcp.test(byId(b.dataset.test));
+        const srv = byId(b.dataset.test);
+        out.textContent = srv.type === 'stdio' ? 'Conectando…' : 'Conectando… si se abre el navegador, inicia sesión allí (SSO/SAML) y vuelve aquí.';
+        const r = await desk.mcp.test(srv);
         out.innerHTML = r.ok
           ? `<span style="color:var(--ok)">✓ ${r.tools.length} herramientas:</span> ${r.tools.map((t) => `<span class="tag" title="${esc(t.description)}">${esc(t.name)}</span>`).join('')}`
-          : `<span class="error">✗ ${esc(r.error)}</span>`;
+          : `<span class="error" style="white-space:pre-wrap">✗ ${esc(r.error)}</span>`;
+      })
+  );
+  $('#mcpList').querySelectorAll('[data-logout]').forEach(
+    (b) =>
+      (b.onclick = async () => {
+        await desk.mcp.logout(b.dataset.logout);
+        document.getElementById(`t-${b.dataset.logout}`).textContent = 'Sesión cerrada. Pulsa «Probar» para volver a iniciar sesión.';
       })
   );
 }
@@ -169,10 +177,12 @@ function splitArgs(s) {
   return out;
 }
 
-function editMcp(server) {
+function editMcp(server, isPreset) {
+  if (isPreset) server = { ...server };
   const s = server || { name: '', type: 'stdio', command: 'npx', args: [], env: {}, url: '', headers: {} };
   modal(
-    `<h3>${server ? 'Editar servidor MCP' : 'Nuevo servidor MCP'}</h3>
+    `<h3>${server && !isPreset ? 'Editar servidor MCP' : 'Nuevo servidor MCP'}</h3>
+    ${isPreset ? '<p class="hint">Servidor MCP oficial de Atlassian para Confluence y Jira Cloud. Deja las cabeceras vacías: al pulsar «Probar» se abrirá tu navegador para iniciar sesión con tu cuenta de empresa (SSO/SAML).</p>' : ''}
     <div class="row"><div><label>Nombre</label><input id="sName" value="${esc(s.name)}" placeholder="filesystem" /></div>
     <div><label>Tipo</label><select id="sType">
       <option value="stdio" ${s.type === 'stdio' ? 'selected' : ''}>Local (stdio)</option>
@@ -185,7 +195,8 @@ function editMcp(server) {
     </div>
     <div id="httpF">
       <label>URL</label><input id="sUrl" value="${esc(s.url)}" placeholder="https://ejemplo.com/mcp" />
-      <label>Cabeceras (una por línea, Nombre: valor)</label><textarea id="sHead" rows="3" placeholder="Authorization: Bearer …">${esc(kvText(s.headers, ': '))}</textarea>
+      <label>Cabeceras (opcional, una por línea, Nombre: valor)</label>
+      <p class="hint" style="margin:0 0 4px">Déjalas vacías para iniciar sesión en el navegador (OAuth / SSO / SAML).</p><textarea id="sHead" rows="3" placeholder="Authorization: Bearer …">${esc(kvText(s.headers, ': '))}</textarea>
     </div>
     <div class="modal-actions"><button id="mCancel">Cancelar</button><button class="primary" id="mSave">Guardar</button></div>`,
     (m) => {
@@ -217,6 +228,7 @@ function editMcp(server) {
   );
 }
 $('#addMcp').onclick = () => editMcp(null);
+$('#addAtlassian').onclick = () => editMcp({ name: 'atlassian', type: 'http', url: 'https://mcp.atlassian.com/v1/mcp', headers: {}, command: '', args: [], env: {} }, true);
 
 // ---------------- Skills ----------------
 async function renderSkills() {

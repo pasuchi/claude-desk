@@ -49,8 +49,8 @@
 
     <!-- MCP -->
     <section id="view-mcp" class="view panel">
-      <header><h2>Servidores MCP</h2><button class="primary" id="addMcp">＋ Nuevo servidor</button></header>
-      <p class="hint">Añade servidores locales (comando, p. ej. <code>npx -y @modelcontextprotocol/server-filesystem ~/Documents</code>) o remotos (URL). Después actívalos en un agente.</p>
+      <header><h2>Servidores MCP</h2><div><button id="addAtlassian">＋ Atlassian (Confluence/Jira)</button> <button class="primary" id="addMcp">＋ Nuevo servidor</button></div></header>
+      <p class="hint">Añade servidores locales (comando, p. ej. <code>npx -y @modelcontextprotocol/server-filesystem ~/Documents</code>) o remotos (URL). Si un servidor remoto pide iniciar sesión, se abre tu navegador (funciona con SSO/SAML de tu empresa). Después actívalos en un agente.</p>
       <div id="mcpList" class="cards"></div>
     </section>
 

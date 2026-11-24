@@ -35,6 +35,15 @@ El uso se cobra en tu cuenta de la Console según los tokens consumidos.
 
 Los datos se guardan en `~/Library/Application Support/Claude Desk/` (`agents.json`, `mcp.json`, `chats.json`, `skills/`).
 
+## Conectar Confluence / Jira (también con SSO o SAML)
+
+1. En **🔌 Servidores MCP** pulsa **＋ Atlassian (Confluence/Jira)** y guarda (deja las cabeceras vacías).
+2. Pulsa **Probar**: se abre tu navegador, inicia sesión con tu cuenta de empresa (SAML/SSO) y acepta los permisos.
+3. Vuelve a la app: verás las herramientas de Confluence. Actívalo en un agente.
+
+Funciona con Confluence **Cloud** (`*.atlassian.net`). Si tu empresa usa Confluence **Data Center/Server**, usa un servidor MCP local con un token personal (PAT).
+Si el administrador de Atlassian de tu empresa no ha habilitado el acceso MCP, el login mostrará un error de permisos.
+
 ## Compilar desde el código (en tu Mac)
 
 ```bash

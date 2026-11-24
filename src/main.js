@@ -85,6 +85,7 @@ handle('mcp:delete', async (id) => {
   await mcp.disconnect(id);
   store.deleteMcp(id);
 });
+handle('mcp:logout', (id) => mcp.logout(id));
 handle('mcp:test', async (s) => {
   try {
     return { ok: true, tools: await mcp.test(s) };

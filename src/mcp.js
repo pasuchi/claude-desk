@@ -4,6 +4,8 @@ const { Client } = require('@modelcontextprotocol/sdk/client/index.js');
 const { StdioClientTransport } = require('@modelcontextprotocol/sdk/client/stdio.js');
 const { StreamableHTTPClientTransport } = require('@modelcontextprotocol/sdk/client/streamableHttp.js');
 const { SSEClientTransport } = require('@modelcontextprotocol/sdk/client/sse.js');
+const { UnauthorizedError } = require('@modelcontextprotocol/sdk/client/auth.js');
+const { DeskOAuthProvider, clearAuth } = require('./oauth');
 const os = require('os');
 const { execSync } = require('child_process');
 
@@ -36,31 +38,76 @@ function cleanSchema(schema) {
 class McpManager {
   constructor() {
     this.conns = new Map(); // id -> { client, tools, server }
+    this.connecting = new Map(); // id -> promesa en curso (evita dos logins a la vez)
   }
 
   async connect(server) {
     if (this.conns.has(server.id)) return this.conns.get(server.id);
-    const client = new Client({ name: 'claude-desk', version: '1.0.0' });
-    let transport;
-    if (server.type === 'stdio') {
-      const env = { ...process.env, PATH: shellPath(), ...(server.env || {}) };
-      transport = new StdioClientTransport({
-        command: server.command,
-        args: server.args || [],
-        env,
-        stderr: 'pipe',
-      });
-    } else {
-      const url = new URL(server.url);
-      const opts = { requestInit: { headers: server.headers || {} } };
-      transport = server.type === 'sse' ? new SSEClientTransport(url, opts) : new StreamableHTTPClientTransport(url, opts);
+    if (this.connecting.has(server.id)) return this.connecting.get(server.id);
+    const p = server.type === 'stdio' ? this._connectStdio(server) : this._connectRemote(server, true);
+    this.connecting.set(server.id, p);
+    try {
+      return await p;
+    } finally {
+      this.connecting.delete(server.id);
     }
-    await client.connect(transport);
+  }
+
+  async _connectStdio(server) {
+    const client = new Client({ name: 'claude-desk', version: '1.0.0' });
+    const env = { ...process.env, PATH: shellPath(), ...(server.env || {}) };
+    const transport = new StdioClientTransport({ command: server.command, args: server.args || [], env, stderr: 'pipe' });
+    // Leemos stderr siempre: si no, un servidor que escribe muchos logs se bloquea.
+    let stderrTail = '';
+    transport.stderr?.on('data', (d) => {
+      stderrTail = (stderrTail + d.toString()).slice(-2000);
+    });
+    try {
+      await client.connect(transport);
+      return await this._finish(server, client);
+    } catch (e) {
+      try { await client.close(); } catch {}
+      const hint = /ENOENT/.test(e.message) ? ` (no se encontró el comando "${server.command}"; ¿está instalado?)` : '';
+      throw new Error(`${e.message}${hint}${stderrTail ? `\n${stderrTail.trim().split('\n').slice(-6).join('\n')}` : ''}`);
+    }
+  }
+
+  async _connectRemote(server, allowLogin) {
+    const url = new URL(server.url);
+    const headers = server.headers || {};
+    const hasStaticAuth = Object.keys(headers).some((h) => h.toLowerCase() === 'authorization');
+    // Sin cabecera Authorization fija, usamos OAuth (login en el navegador, compatible con SSO/SAML).
+    const authProvider = hasStaticAuth ? undefined : new DeskOAuthProvider(server);
+    const opts = { requestInit: { headers }, authProvider };
+    const transport = server.type === 'sse' ? new SSEClientTransport(url, opts) : new StreamableHTTPClientTransport(url, opts);
+    const client = new Client({ name: 'claude-desk', version: '1.0.0' });
+    try {
+      await client.connect(transport);
+      return await this._finish(server, client);
+    } catch (e) {
+      try { await client.close(); } catch {}
+      if (e instanceof UnauthorizedError && authProvider && allowLogin) {
+        if (!authProvider.pending) throw new Error('El servidor pidió iniciar sesión pero no ofreció una página de login.');
+        const code = await authProvider.pending; // el usuario inicia sesión en el navegador (SAML/SSO)
+        await transport.finishAuth(code);
+        return this._connectRemote(server, false);
+      }
+      if (e instanceof UnauthorizedError) throw new Error('No autorizado (401). Revisa las cabeceras o pulsa "Cerrar sesión" y vuelve a probar.');
+      throw e;
+    }
+  }
+
+  async _finish(server, client) {
     const { tools } = await client.listTools();
     const conn = { client, tools, server };
     this.conns.set(server.id, conn);
-    client.onclose = () => this.conns.delete(server.id);
+    client.onclose = () => this.conns.get(server.id) === conn && this.conns.delete(server.id);
     return conn;
+  }
+
+  async logout(id) {
+    await this.disconnect(id);
+    clearAuth(id);
   }
 
   async disconnect(id) {
