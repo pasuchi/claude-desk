@@ -8,7 +8,7 @@
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --mac zip dmg --arm64 --x64",
+    "dist": "electron-builder --mac zip --arm64 --x64",
     "dist:zip": "electron-builder --mac zip --arm64 --x64"
   },
   "build": {
@@ -22,16 +22,19 @@
     "mac": {
       "category": "public.app-category.productivity",
       "target": [
-        "zip",
-        "dmg"
+        "zip"
       ],
-      "identity": null
+      "identity": "-",
+      "hardenedRuntime": false
     },
     "publish": null,
     "electronLanguages": [
       "es",
       "en"
-    ]
+    ],
+    "zip": {
+      "artifactName": "Claude-Desk-portable-${arch}.${ext}"
+    }
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.13.0",

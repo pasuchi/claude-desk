@@ -21,16 +21,23 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
-      - name: Compilar (.dmg y .zip, Apple Silicon e Intel)
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
-        run: npx electron-builder --mac dmg zip --arm64 --x64 --publish never
+      - name: Compilar version portable (Apple Silicon e Intel)
+        run: |
+          npx electron-builder --mac zip --arm64 --x64 --publish never
+          mv dist/Claude-Desk-portable-arm64.zip "dist/Claude-Desk-portable-AppleSilicon.zip"
+          mv dist/Claude-Desk-portable-x64.zip "dist/Claude-Desk-portable-Intel.zip"
+
+      - name: Comprobar firma
+        run: |
+          cd dist && ditto -x -k Claude-Desk-portable-AppleSilicon.zip check
+          codesign --verify --deep --strict --verbose=2 "check/Claude Desk.app"
+          rm -rf check
 
       - name: Publicar en Releases
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v$(node -p "require('./package.json').version")-${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" dist/*.dmg dist/*.zip \
+          gh release create "$TAG" dist/Claude-Desk-portable-*.zip \
             --title "Claude Desk $TAG" \
-            --notes "Descarga el .dmg: arm64 = Apple Silicon (M1-M4); sin arm64 = Intel. Lee el README para instalar."
+            --notes "Version portable: descarga el zip de tu Mac (AppleSilicon = chip M1-M4, Intel = procesador Intel), descomprimelo y abre Claude Desk con doble clic. No hace falta instalar."

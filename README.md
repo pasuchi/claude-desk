@@ -2,23 +2,16 @@
 
 App de escritorio para macOS que usa Claude con **tu propio token** (sin iniciar sesión con usuario y contraseña), con soporte para **servidores MCP**, **agentes** y **skills**.
 
-## Instalar
+## Descargar y abrir (versión portátil, sin instalar)
 
-1. En este repositorio de GitHub entra en **Releases** (columna derecha) y descarga el `.dmg` de tu Mac:
-   - Apple Silicon (M1/M2/M3/M4): el archivo que contiene `arm64`
-   - Intel: el archivo sin `arm64`
-2. Ábrelo y arrastra **Claude Desk.app** a `/Aplicaciones`.
-3. La app no está firmada con un certificado de Apple. La primera vez, abre la Terminal y ejecuta:
-
-   ```bash
-   xattr -cr "/Applications/Claude Desk.app"
-   ```
-
-   ```bash
-   codesign --force --deep -s - "/Applications/Claude Desk.app"
-   ```
-
-   Después ábrela con normalidad (o clic derecho → Abrir).
+1. En este repositorio entra en **Releases** (columna derecha) y descarga el zip de tu Mac:
+   - Apple Silicon (chip M1–M4): `Claude-Desk-portable-AppleSilicon.zip`
+   - Intel: `Claude-Desk-portable-Intel.zip`
+2. Haz doble clic en el zip para descomprimirlo. Aparece **Claude Desk**: ese es el ejecutable. Puedes dejarlo en Descargas, en el Escritorio o en un USB.
+3. La primera vez, macOS lo bloquea porque no viene de la App Store ni de un desarrollador registrado:
+   - Haz doble clic en Claude Desk y, en el aviso, pulsa **Aceptar** (o **Listo**).
+   - Abre **Ajustes del Sistema → Privacidad y seguridad**, baja hasta el mensaje sobre «Claude Desk» y pulsa **Abrir igualmente**.
+   - Confirma con tu contraseña. A partir de ahí se abre con doble clic normal.
 
 ## Configurar el token
 
@@ -56,4 +49,4 @@ npm start
 npm run dist
 ```
 
-`npm run dist` genera el `.dmg` y el `.zip` en `dist/`.
+`npm run dist` genera los `.zip` portátiles en `dist/`.
