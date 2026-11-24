@@ -4,10 +4,10 @@ App de escritorio para macOS que usa Claude con **tu propio token** (sin iniciar
 
 ## Instalar
 
-1. Descarga el zip que corresponde a tu Mac:
-   - Apple Silicon (M1/M2/M3/M4): `dist/Claude Desk-1.0.0-arm64-mac.zip`
-   - Intel: `dist/Claude Desk-1.0.0-mac.zip`
-2. Descomprímelo y arrastra **Claude Desk.app** a `/Aplicaciones`.
+1. En este repositorio de GitHub entra en **Releases** (columna derecha) y descarga el `.dmg` de tu Mac:
+   - Apple Silicon (M1/M2/M3/M4): el archivo que contiene `arm64`
+   - Intel: el archivo sin `arm64`
+2. Ábrelo y arrastra **Claude Desk.app** a `/Aplicaciones`.
 3. La app no está firmada con un certificado de Apple. La primera vez, abre la Terminal y ejecuta:
 
    ```bash
