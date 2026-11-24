@@ -25,16 +25,14 @@
         "zip"
       ],
       "identity": "-",
-      "hardenedRuntime": false
+      "hardenedRuntime": false,
+      "artifactName": "Claude-Desk-portable-${arch}.${ext}"
     },
     "publish": null,
     "electronLanguages": [
       "es",
       "en"
-    ],
-    "zip": {
-      "artifactName": "Claude-Desk-portable-${arch}.${ext}"
-    }
+    ]
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.13.0",
