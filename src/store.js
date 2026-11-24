@@ -36,7 +36,46 @@ const DEFAULT_AGENT = {
   confirmTools: true,
 };
 
+const ATLASSIAN_SERVER = {
+  id: 'atlassian',
+  name: 'atlassian',
+  type: 'http',
+  url: 'https://mcp.atlassian.com/v1/mcp',
+  headers: {},
+  command: '',
+  args: [],
+  env: {},
+};
+
+const CONFLUENCE_AGENT = {
+  id: 'confluence',
+  name: 'Confluence',
+  description: 'Busca, lee y crea páginas en tu Confluence (y Jira)',
+  model: 'claude-opus-5-5',
+  effort: 'medium',
+  systemPrompt:
+    'Eres un asistente conectado al Confluence y Jira de la empresa del usuario mediante las herramientas de Atlassian. ' +
+    'Cuando la pregunta pueda responderse con información de Confluence, búscala primero con las herramientas y cita el título y el enlace de las páginas que uses. ' +
+    'Antes de crear o modificar páginas o incidencias, muestra al usuario qué vas a cambiar. Responde en el idioma del usuario.',
+  mcpServers: ['atlassian'],
+  skills: [],
+  webSearch: false,
+  confirmTools: true,
+};
+
 const store = {
+  // Crea una sola vez (al primer arranque de esta versión) la conexión de Atlassian y el agente Confluence.
+  seedDefaults() {
+    const s = readJSON('settings.json', {});
+    if (s.seededAtlassian) return;
+    const servers = this.listMcp();
+    if (!servers.some((x) => x.id === ATLASSIAN_SERVER.id || /mcp\.atlassian\.com/.test(x.url || ''))) this.saveMcp({ ...ATLASSIAN_SERVER });
+    const atl = this.listMcp().find((x) => x.id === ATLASSIAN_SERVER.id || /mcp\.atlassian\.com/.test(x.url || ''));
+    const agents = this.listAgents();
+    if (!agents.some((a) => a.id === CONFLUENCE_AGENT.id)) this.saveAgent({ ...CONFLUENCE_AGENT, mcpServers: [atl.id] });
+    writeJSON('settings.json', { ...readJSON('settings.json', {}), seededAtlassian: true });
+  },
+
   skillsDir() {
     const dir = path.join(dataDir(), 'skills');
     fs.mkdirSync(dir, { recursive: true });

@@ -37,9 +37,13 @@ Los datos se guardan en `~/Library/Application Support/Claude Desk/` (`agents.js
 
 ## Conectar Confluence / Jira (también con SSO o SAML)
 
-1. En **🔌 Servidores MCP** pulsa **＋ Atlassian (Confluence/Jira)** y guarda (deja las cabeceras vacías).
-2. Pulsa **Probar**: se abre tu navegador, inicia sesión con tu cuenta de empresa (SAML/SSO) y acepta los permisos.
-3. Vuelve a la app: verás las herramientas de Confluence. Actívalo en un agente.
+La app ya trae creados el servidor **atlassian** y el agente **Confluence**.
+
+1. Elige el agente **Confluence** en la barra lateral y escribe tu pregunta (por ejemplo: «busca en Confluence la política de vacaciones»).
+2. La primera vez se abre tu navegador: inicia sesión con tu cuenta de empresa (SAML/SSO) y acepta los permisos.
+3. Vuelve a la app: Claude ya puede buscar y leer tus páginas. La sesión queda guardada.
+
+También puedes pulsar **Probar** en **🔌 Servidores MCP** para iniciar sesión antes de chatear.
 
 Funciona con Confluence **Cloud** (`*.atlassian.net`). Si tu empresa usa Confluence **Data Center/Server**, usa un servidor MCP local con un token personal (PAT).
 Si el administrador de Atlassian de tu empresa no ha habilitado el acceso MCP, el login mostrará un error de permisos.

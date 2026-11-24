@@ -138,6 +138,7 @@ handle('chat:approve', ({ requestId, ok }) => {
 });
 
 app.whenReady().then(() => {
+  try { store.seedDefaults(); } catch (e) { console.error('seed', e); }
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
       { role: 'appMenu' },

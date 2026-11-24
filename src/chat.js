@@ -1,6 +1,7 @@
 // Bucle de conversación con Claude: streaming + herramientas (MCP, skills, web search).
 const Anthropic = require('@anthropic-ai/sdk');
 const { skillTooling } = require('./skills');
+const { hasAuth } = require('./oauth');
 
 const MODELS = [
   { id: 'claude-opus-5-5', label: 'Claude Opus 5.5' },
@@ -54,6 +55,9 @@ class ChatRunner {
 
       // Herramientas: MCP del agente + skills del agente + web search opcional.
       const servers = this.store.listMcp().filter((s) => (agent.mcpServers || []).includes(s.id));
+      if (servers.some((s) => s.type !== 'stdio' && !hasAuth(s.id) && !Object.keys(s.headers || {}).some((h) => h.toLowerCase() === 'authorization'))) {
+        emit('notice', { text: 'Conectando con los servidores MCP… si se abre tu navegador, inicia sesión con tu cuenta de empresa y vuelve aquí.' });
+      }
       const { defs: mcpTools, routes, errors } = await this.mcp.toolsFor(servers);
       for (const e of errors) emit('notice', { text: `No se pudo conectar el MCP ${e}` });
 
