@@ -1,0 +1,36 @@
+name: Compilar app para Mac
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Compilar (.dmg y .zip, Apple Silicon e Intel)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        run: npx electron-builder --mac dmg zip --arm64 --x64 --publish never
+
+      - name: Publicar en Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v$(node -p "require('./package.json').version")-${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" dist/*.dmg dist/*.zip \
+            --title "Claude Desk $TAG" \
+            --notes "Descarga el .dmg: arm64 = Apple Silicon (M1-M4); sin arm64 = Intel. Lee el README para instalar."

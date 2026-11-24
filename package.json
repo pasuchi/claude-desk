@@ -1,0 +1,46 @@
+{
+  "name": "claude-desk",
+  "productName": "Claude Desk",
+  "version": "1.0.0",
+  "description": "App de escritorio para Mac que usa Claude con tu propio token, con MCP, agentes y skills.",
+  "main": "src/main.js",
+  "author": "Claude Desk",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --mac zip dmg --arm64 --x64",
+    "dist:zip": "electron-builder --mac zip --arm64 --x64"
+  },
+  "build": {
+    "appId": "com.claudedesk.app",
+    "productName": "Claude Desk",
+    "files": [
+      "src/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "zip",
+        "dmg"
+      ],
+      "identity": null
+    },
+    "publish": null,
+    "electronLanguages": [
+      "es",
+      "en"
+    ]
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.13.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "dompurify": "^3.5.0",
+    "marked": "^18.3.0"
+  },
+  "devDependencies": {
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0"
+  }
+}
